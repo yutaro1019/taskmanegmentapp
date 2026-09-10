@@ -4,8 +4,8 @@
 // 気づける(秘密鍵がブラウザに漏れる事故を防ぐガード)。
 import "server-only";
 import { cert, getApps, getApp, initializeApp, type App } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
+import { getAuth, type Auth } from "firebase-admin/auth";
+import { getFirestore, type Firestore } from "firebase-admin/firestore";
 
 function initAdminApp(): App {
   if (getApps().length) return getApp();
@@ -25,7 +25,23 @@ function initAdminApp(): App {
   });
 }
 
-const adminApp = initAdminApp();
+// 遅延初期化(lazy initialization): モジュールが import された瞬間ではなく、
+// 実際に getAdminAuth() / getAdminDb() が呼ばれた瞬間に初めて初期化する。
+// こうしておかないと、.env.local が未設定の状態で `next build` がこのファイルを
+// 読み込もうとしただけでエラーになってしまう(実際に遭遇したビルドエラー)。
+let cachedAuth: Auth | undefined;
+let cachedDb: Firestore | undefined;
 
-export const adminAuth = getAuth(adminApp);
-export const adminDb = getFirestore(adminApp);
+export function getAdminAuth(): Auth {
+  if (!cachedAuth) {
+    cachedAuth = getAuth(initAdminApp());
+  }
+  return cachedAuth;
+}
+
+export function getAdminDb(): Firestore {
+  if (!cachedDb) {
+    cachedDb = getFirestore(initAdminApp());
+  }
+  return cachedDb;
+}
