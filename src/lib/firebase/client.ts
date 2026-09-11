@@ -1,8 +1,8 @@
 // ブラウザ側で使うFirebaseの初期化。このファイルは画面のコードから import されるので、
 // ブラウザに送られる前提で書く(だから .env.local の NEXT_PUBLIC_ が付いた値だけを使う)。
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
+import { getAuth, type Auth } from "firebase/auth";
+import { getFirestore, type Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -13,9 +13,27 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Next.jsは画面が再読み込みされるたびにこのファイルが再実行されうるので、
-// 既に初期化済みなら使い回す(重複初期化を防ぐ)。
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+function initClientApp(): FirebaseApp {
+  return getApps().length ? getApp() : initializeApp(firebaseConfig);
+}
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+// 遅延初期化: importされた瞬間ではなく、実際に getFirebaseAuth() / getFirebaseDb() が
+// 呼ばれた瞬間(= ブラウザでボタンが押された時など)に初めて初期化する。
+// "use client" なページも、初回HTML生成のためにビルド時に一度サーバーで実行されるため、
+// トップレベルで即座に初期化すると .env.local が無い状態でビルドが失敗してしまう。
+let cachedAuth: Auth | undefined;
+let cachedDb: Firestore | undefined;
+
+export function getFirebaseAuth(): Auth {
+  if (!cachedAuth) {
+    cachedAuth = getAuth(initClientApp());
+  }
+  return cachedAuth;
+}
+
+export function getFirebaseDb(): Firestore {
+  if (!cachedDb) {
+    cachedDb = getFirestore(initClientApp());
+  }
+  return cachedDb;
+}
