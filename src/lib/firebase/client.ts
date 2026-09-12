@@ -1,8 +1,8 @@
 // ブラウザ側で使うFirebaseの初期化。このファイルは画面のコードから import されるので、
 // ブラウザに送られる前提で書く(だから .env.local の NEXT_PUBLIC_ が付いた値だけを使う)。
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
-import { getAuth, type Auth } from "firebase/auth";
-import { getFirestore, type Firestore } from "firebase/firestore";
+import { connectAuthEmulator, getAuth, type Auth } from "firebase/auth";
+import { connectFirestoreEmulator, getFirestore, type Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -24,9 +24,14 @@ function initClientApp(): FirebaseApp {
 let cachedAuth: Auth | undefined;
 let cachedDb: Firestore | undefined;
 
+const useEmulator = process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true";
+
 export function getFirebaseAuth(): Auth {
   if (!cachedAuth) {
     cachedAuth = getAuth(initClientApp());
+    if (useEmulator) {
+      connectAuthEmulator(cachedAuth, "http://127.0.0.1:9099");
+    }
   }
   return cachedAuth;
 }
@@ -34,6 +39,9 @@ export function getFirebaseAuth(): Auth {
 export function getFirebaseDb(): Firestore {
   if (!cachedDb) {
     cachedDb = getFirestore(initClientApp());
+    if (useEmulator) {
+      connectFirestoreEmulator(cachedDb, "127.0.0.1", 8080);
+    }
   }
   return cachedDb;
 }

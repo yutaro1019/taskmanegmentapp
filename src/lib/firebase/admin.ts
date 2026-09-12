@@ -10,6 +10,18 @@ import { getFirestore, type Firestore } from "firebase-admin/firestore";
 function initAdminApp(): App {
   if (getApps().length) return getApp();
 
+  // FIRESTORE_EMULATOR_HOST / FIREBASE_AUTH_EMULATOR_HOST が設定されている場合は
+  // ローカルのエミュレータに接続する。エミュレータは認証情報を検証しないので、
+  // 本物の秘密鍵(サービスアカウント)は不要。projectIdだけで初期化できる。
+  const usingEmulator =
+    !!process.env.FIRESTORE_EMULATOR_HOST || !!process.env.FIREBASE_AUTH_EMULATOR_HOST;
+
+  if (usingEmulator) {
+    return initializeApp({
+      projectId: process.env.FIREBASE_ADMIN_PROJECT_ID ?? "demo-taskapp",
+    });
+  }
+
   const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
   const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n");

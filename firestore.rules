@@ -1,0 +1,13 @@
+rules_version = '2';
+
+// 現時点ではブラウザから直接Firestoreを読み書きする画面がまだ無いため、
+// 一旦「全部拒否」から始める(Admin SDK経由のAPI Routeはこのルールの影響を受けない)。
+// タスク一覧などクライアントから直接Firestoreにアクセスする画面を作る際に、
+// 組織単位のアクセス制御ルールをここに追加していく。
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
