@@ -56,6 +56,12 @@ export async function POST(
 
   const uid = decoded.uid;
 
+  const body = await request.json().catch(() => ({}));
+  const displayName =
+    typeof body.displayName === "string" && body.displayName.trim()
+      ? body.displayName.trim()
+      : decodedEmail;
+
   // 「1ユーザー1組織」ルール: 既にどこかの組織に所属していないか確認する。
   const existingUserDoc = await adminDb.collection("users").doc(uid).get();
   if (existingUserDoc.exists) {
@@ -71,7 +77,7 @@ export async function POST(
   const member: Member = {
     role: invite.role,
     email: decodedEmail,
-    displayName: decoded.name ?? decodedEmail,
+    displayName,
     joinedAt: now,
   };
   batch.set(

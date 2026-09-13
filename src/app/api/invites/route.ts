@@ -17,8 +17,15 @@ export async function GET(request: NextRequest) {
   const db = getAdminDb();
   const snapshot = await db.collection("invites").where("orgId", "==", auth.orgId).get();
 
+  const now = Date.now();
   const invites: InviteWithToken[] = snapshot.docs
-    .map((doc) => ({ token: doc.id, ...(doc.data() as Invite) }))
+    .map((doc) => {
+      const invite = doc.data() as Invite;
+      // GET /api/invites/[token] と同じ基準で期限切れを都度計算する。
+      // Firestore上のstatusは"pending"のままでも、表示上は「期限切れ」にする。
+      const status = invite.status === "pending" && invite.expiresAt < now ? "expired" : invite.status;
+      return { token: doc.id, ...invite, status };
+    })
     .sort((a, b) => b.createdAt - a.createdAt);
 
   return NextResponse.json({ invites });

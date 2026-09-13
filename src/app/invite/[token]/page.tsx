@@ -27,6 +27,7 @@ export default function InvitePage() {
   const [invite, setInvite] = useState<InviteInfo | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [mode, setMode] = useState<"signup" | "login">("signup");
+  const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -46,7 +47,11 @@ export default function InvitePage() {
     const idToken = await auth.currentUser?.getIdToken();
     const res = await fetch(`/api/invites/${token}/redeem`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${idToken}` },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ displayName }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error ?? "参加処理に失敗しました");
@@ -135,6 +140,15 @@ export default function InvitePage() {
         <label className="flex flex-col gap-1 text-sm">
           メールアドレス
           <input value={invite.email} disabled className="rounded border bg-gray-100 px-3 py-2" />
+        </label>
+        <label className="flex flex-col gap-1 text-sm">
+          お名前
+          <input
+            required
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            className="rounded border px-3 py-2"
+          />
         </label>
         <label className="flex flex-col gap-1 text-sm">
           パスワード
