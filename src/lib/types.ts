@@ -36,3 +36,7 @@ export interface Task {
   createdAt: number;
   updatedAt: number;
 }
+
+// API Routeはドキュメントのidを含めて返すので、それを表す型
+export type MemberWithId = Member & { id: string };
+export type TaskWithId = Task & { id: string };

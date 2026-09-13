@@ -1,16 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { signOut } from "firebase/auth";
-import { getFirebaseAuth } from "@/lib/firebase/client";
 import { useAuth } from "@/lib/auth/context";
 
 export default function Home() {
   const { user, loading, orgId, role } = useAuth();
-
-  async function handleLogout() {
-    await signOut(getFirebaseAuth());
-  }
 
   if (loading) {
     return (
@@ -37,7 +31,7 @@ export default function Home() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-4 px-4 py-16">
+    <main className="mx-auto flex max-w-md flex-col gap-4 px-4 py-16">
       <h1 className="text-xl font-bold">ログイン中</h1>
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
         <dt className="text-gray-500">メールアドレス</dt>
@@ -47,15 +41,14 @@ export default function Home() {
         <dt className="text-gray-500">ロール</dt>
         <dd>{role ?? "(未設定)"}</dd>
       </dl>
-      <p className="text-sm text-gray-500">
-        タスク一覧・ユーザー管理画面はまだ実装中です。
-      </p>
-      <button
-        onClick={handleLogout}
-        className="w-fit rounded border px-4 py-2 text-sm"
-      >
-        ログアウト
-      </button>
+      <div className="flex gap-4 text-sm">
+        <Link href="/tasks" className="underline">
+          タスク一覧へ
+        </Link>
+        <Link href="/users" className="underline">
+          ユーザー管理へ
+        </Link>
+      </div>
     </main>
   );
 }
