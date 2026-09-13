@@ -7,7 +7,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 
 export default function Home() {
-  const { user, loading, orgId, role } = useAuth();
+  const { user, loading, role, displayName, orgName } = useAuth();
 
   if (loading) {
     return (
@@ -38,10 +38,12 @@ export default function Home() {
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 px-4 py-10">
       <section className="rounded-lg border border-gray-200 bg-white p-5">
         <div className="flex items-center gap-3">
-          <Avatar name={user.email ?? "?"} size="md" />
+          <Avatar name={displayName ?? user.email ?? "?"} size="md" />
           <div>
-            <p className="text-sm font-medium text-gray-900">{user.email}</p>
-            <p className="text-xs text-gray-500">組織ID: {orgId ?? "(未設定)"}</p>
+            <p className="text-sm font-medium text-gray-900">{displayName ?? user.email}</p>
+            <p className="text-xs text-gray-500">
+              {orgName ?? "(組織名を取得中...)"} ・ {user.email}
+            </p>
           </div>
           <div className="ml-auto">
             <Badge variant={role === "admin" ? "purple" : "gray"}>

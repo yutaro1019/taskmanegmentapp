@@ -15,7 +15,7 @@ const LINKS = [
 ];
 
 export function Nav() {
-  const { user, loading } = useAuth();
+  const { user, loading, displayName, orgName } = useAuth();
   const pathname = usePathname();
 
   if (loading || !user) return null;
@@ -24,12 +24,17 @@ export function Nav() {
     await signOut(getFirebaseAuth());
   }
 
+  const nameForAvatar = displayName ?? user.email ?? "?";
+
   return (
     <header className="border-b bg-white">
       <nav className="mx-auto flex max-w-5xl items-center gap-1 px-4 py-2.5">
-        <Link href="/" className="mr-4 text-sm font-bold text-gray-900">
+        <Link href="/" className="mr-1 text-sm font-bold text-gray-900">
           タスク管理アプリ
         </Link>
+        {orgName && (
+          <span className="mr-3 hidden text-sm text-gray-400 sm:inline">/ {orgName}</span>
+        )}
         {LINKS.map(({ href, label, icon: Icon }) => {
           const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
           return (
@@ -47,8 +52,8 @@ export function Nav() {
         })}
         <div className="ml-auto flex items-center gap-3">
           <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Avatar name={user.email ?? "?"} />
-            <span className="hidden sm:inline">{user.email}</span>
+            <Avatar name={nameForAvatar} />
+            <span className="hidden sm:inline">{nameForAvatar}</span>
           </div>
           <button
             onClick={handleLogout}
