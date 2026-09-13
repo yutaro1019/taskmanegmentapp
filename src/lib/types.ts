@@ -15,11 +15,17 @@ export interface Member {
   joinedAt: number;
 }
 
+export type InviteStatus = "pending" | "accepted" | "revoked" | "expired";
+
+// invites/{token} というトップレベルのコレクションに置く(orgIdを事前に知らない
+// 状態でもトークンだけでドキュメントを引けるようにするため、組織のサブコレクションに
+// はしない)。詳細は docs/BACKEND_DESIGN.md 参照。
 export interface Invite {
+  orgId: string;
+  orgName: string; // 招待画面にorgId抜きで表示するための非正規化
   email: string;
   role: Role;
-  token: string;
-  status: "pending" | "accepted" | "revoked" | "expired";
+  status: InviteStatus;
   invitedBy: string;
   createdAt: number;
   expiresAt: number;
@@ -40,3 +46,4 @@ export interface Task {
 // API Routeはドキュメントのidを含めて返すので、それを表す型
 export type MemberWithId = Member & { id: string };
 export type TaskWithId = Task & { id: string };
+export type InviteWithToken = Invite & { token: string };

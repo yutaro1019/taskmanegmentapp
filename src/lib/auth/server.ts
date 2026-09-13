@@ -1,15 +1,17 @@
 import "server-only";
 import type { NextRequest } from "next/server";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase/admin";
+import type { Role } from "@/lib/types";
 
 export interface AuthorizedRequest {
   uid: string;
   email: string;
   orgId: string;
+  role: Role;
 }
 
-// 各API Routeで繰り返していた「IDトークンを検証し、所属組織を確定する」処理の共通化。
-// Custom Claimsではなく、あえてFirestoreのusersドキュメントを正として読みに行く
+// 各API Routeで繰り返していた「IDトークンを検証し、所属組織とロールを確定する」処理の共通化。
+// Custom Claimsではなく、あえてFirestoreのドキュメントを正として読みに行く
 // (Custom Claimsは更新が非同期でズレることがあるため、サーバー側の重要な判定は
 //  常に最新のFirestoreを見る、という設計方針)。
 export async function requireOrgMember(request: NextRequest): Promise<AuthorizedRequest | null> {
@@ -33,5 +35,21 @@ export async function requireOrgMember(request: NextRequest): Promise<Authorized
   const orgId = userDoc.data()?.orgId;
   if (typeof orgId !== "string") return null;
 
-  return { uid: decoded.uid, email: decoded.email ?? "", orgId };
+  const memberDoc = await adminDb
+    .collection("organizations")
+    .doc(orgId)
+    .collection("members")
+    .doc(decoded.uid)
+    .get();
+  const role = memberDoc.data()?.role;
+  if (role !== "admin" && role !== "member") return null;
+
+  return { uid: decoded.uid, email: decoded.email ?? "", orgId, role };
+}
+
+// admin専用の操作で使う。管理者でなければnullを返す。
+export async function requireOrgAdmin(request: NextRequest): Promise<AuthorizedRequest | null> {
+  const auth = await requireOrgMember(request);
+  if (!auth || auth.role !== "admin") return null;
+  return auth;
 }

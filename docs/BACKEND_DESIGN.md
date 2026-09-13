@@ -42,10 +42,11 @@ organizations/{orgId}/members/{uid}
   - displayName: string
   - joinedAt: timestamp
 
-organizations/{orgId}/invites/{inviteId}
+invites/{token}                    // トップレベル。招待された側はまだorgIdを
+  - orgId: string                  // 知らないので、token単体で引けるようにする
+  - orgName: string                // (組織のサブコレクションだとorgIdが先に要る)
   - email: string
   - role: "admin" | "member"
-  - token: string          // URLに埋め込む一意トークン
   - status: "pending" | "accepted" | "revoked" | "expired"
   - invitedBy: uid
   - createdAt: timestamp
